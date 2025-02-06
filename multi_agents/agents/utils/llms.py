@@ -8,8 +8,8 @@ from gpt_researcher.utils.llm import create_chat_completion
 from loguru import logger
 
 MODEL_MAPPINGS = {
-    'o3-mini': 'o3-mini',  # Map custom name to actual OpenAI model
-    'gpt-4o': 'gpt-4o',           # Map custom name to actual OpenAI model
+    'gpt-4o': 'gpt-4o',
+    'o3-mini': 'o3-mini-2025-01-31'
 }
 
 async def call_model(
@@ -19,11 +19,11 @@ async def call_model(
 ):
     """Call the language model with better error handling and model mapping"""
 
-    # Map custom model names to actual OpenAI model names
+    # Map custom names to valid OpenAI models
     actual_model = MODEL_MAPPINGS.get(model)
     if not actual_model:
-        logger.warning(f"Invalid model '{model}', defaulting to o3-mini")
-        actual_model = 'o3-mini'
+        logger.warning(f"Invalid model '{model}', defaulting to gpt-3.5-turbo")
+        actual_model = 'gpt-3.5-turbo'  # Valid fallback
 
     optional_params = {}
     if response_format == "json":

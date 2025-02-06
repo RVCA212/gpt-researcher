@@ -43,9 +43,9 @@ class EditorAgent:
         )
 
         return {
-            "title": plan.get("title"),
-            "date": plan.get("date"),
-            "sections": plan.get("sections"),
+            "title": plan.get("title") if plan else "Default Title",
+            "date": plan.get("date", datetime.now().strftime('%d/%m/%Y')),
+            "sections": plan.get("sections", [])
         }
 
     async def run_parallel_research(self, research_state: Dict[str, any]) -> Dict[str, List[str]]:
@@ -109,9 +109,9 @@ class EditorAgent:
                    based on the research summary report above.
                    You must generate a maximum of {max_sections} section headers.
                    You must focus ONLY on related research topics for subheaders and do NOT include introduction, conclusion and references.
-                   You must return nothing but a JSON with the fields 'title' (str) and 
+                   You must return nothing but a JSON with the fields 'title' (str) and
                    'sections' (maximum {max_sections} section headers) with the following structure:
-                   '{{title: string research title, date: today's date, 
+                   '{{title: string research title, date: today's date,
                    sections: ['section header 1', 'section header 2', 'section header 3' ...]}}'."""
 
     def _initialize_agents(self) -> Dict[str, any]:
