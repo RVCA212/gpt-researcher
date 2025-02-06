@@ -6,7 +6,6 @@ from langgraph.graph import StateGraph, END
 from .utils.views import print_agent_output
 from ..memory.research import ResearchState
 from .utils.utils import sanitize_filename
-from ..config.models import validate_model
 
 # Import agent classes
 from . import \
@@ -21,10 +20,7 @@ class ChiefEditorAgent:
     """Agent responsible for managing and coordinating editing tasks."""
 
     def __init__(self, task: dict, websocket=None, stream_output=None, tone=None, headers=None):
-        # Validate model before initializing
-        task["model"] = validate_model(task.get("model"))
-
-        self.task = task
+        self.task = self._validate_task(task)
         self.websocket = websocket
         self.stream_output = stream_output
         self.headers = headers or {}
@@ -43,6 +39,22 @@ class ChiefEditorAgent:
 
         os.makedirs(output_dir, exist_ok=True)
         return output_dir
+
+    def _validate_task(self, task: dict) -> dict:
+        """Validate and sanitize task parameters"""
+        allowed_models = {'o3-mini', 'gpt-4o'}
+        model = task.get('model', 'o3-mini')
+
+        if model not in allowed_models:
+            # Choose one approach:
+            # Option 1: Raise explicit error
+            raise ValueError(f"Invalid model '{model}'. Allowed values: {allowed_models}")
+
+            # Option 2: Revert to default with warning
+            # print_agent_output(f"Invalid model '{model}', defaulting to 'o3-mini'", "WARNING")
+            # task['model'] = 'o3-mini'
+
+        return task
 
     def _initialize_agents(self):
         return {
