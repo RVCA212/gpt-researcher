@@ -22,7 +22,7 @@ class ChiefEditorAgent:
     def __init__(self, task: dict, websocket=None, stream_output=None, tone=None, headers=None):
         self.task = task
         # Hardcode the model value for all research tasks
-        self.task["model"] = "o3-mini"
+        self.task["model"] = "gpt-4o"
         self.websocket = websocket
         self.stream_output = stream_output
         self.headers = headers or {}
