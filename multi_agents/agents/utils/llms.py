@@ -7,12 +7,23 @@ from gpt_researcher.utils.llm import create_chat_completion
 
 from loguru import logger
 
+MODEL_MAPPINGS = {
+    'o3-mini': 'o3-mini',  # Map custom name to actual OpenAI model
+    'gpt-4o': 'gpt-4o',           # Map custom name to actual OpenAI model
+}
 
 async def call_model(
     prompt: list,
     model: str,
     response_format: str = None,
 ):
+    """Call the language model with better error handling and model mapping"""
+
+    # Map custom model names to actual OpenAI model names
+    actual_model = MODEL_MAPPINGS.get(model)
+    if not actual_model:
+        logger.warning(f"Invalid model '{model}', defaulting to o3-mini")
+        actual_model = 'o3-mini'
 
     optional_params = {}
     if response_format == "json":
@@ -23,27 +34,39 @@ async def call_model(
 
     try:
         response = await create_chat_completion(
-            model=model,
+            model=actual_model,  # Use mapped model name
             messages=lc_messages,
             temperature=0,
             llm_provider=cfg.smart_llm_provider,
             llm_kwargs=cfg.llm_kwargs,
-            # cost_callback=cost_callback,
         )
+
+        if not response:
+            raise ValueError("Empty response received from model")
 
         if response_format == "json":
             try:
-                cleaned_json_string = response.strip("```json\n")
+                # First try to clean any markdown formatting
+                cleaned_json_string = response.strip().strip('```json').strip('```')
                 return json.loads(cleaned_json_string)
             except Exception as e:
-                print("⚠️ Error in reading JSON, attempting to repair JSON")
-                logger.error(
-                    f"Error in reading JSON, attempting to repair reponse: {response}"
-                )
-                return json_repair.loads(response)
+                logger.warning(f"Initial JSON parsing failed: {e}, attempting repair")
+                try:
+                    return json_repair.loads(response)
+                except Exception as e:
+                    logger.error(f"JSON repair failed: {e}")
+                    # Return a basic valid JSON rather than None
+                    return {"error": "Failed to parse response", "raw_response": response}
         else:
             return response
 
     except Exception as e:
-        print("⚠️ Error in calling model")
         logger.error(f"Error in calling model: {e}")
+        if response_format == "json":
+            # Return a valid JSON with error info rather than None
+            return {
+                "error": str(e),
+                "title": "Error occurred",
+                "sections": ["Error processing request"]
+            }
+        return f"Error: {str(e)}"
