@@ -70,7 +70,7 @@ class WriterAgent:
         prompt = [
             {
                 "role": "system",
-                "content": """You are a research writer. 
+                "content": """You are a research writer.
 Your sole purpose is to revise the headers data based on the given guidelines.""",
             },
             {

@@ -6,6 +6,7 @@ from langgraph.graph import StateGraph, END
 from .utils.views import print_agent_output
 from ..memory.research import ResearchState
 from .utils.utils import sanitize_filename
+from ..config.models import validate_model
 
 # Import agent classes
 from . import \
@@ -20,9 +21,10 @@ class ChiefEditorAgent:
     """Agent responsible for managing and coordinating editing tasks."""
 
     def __init__(self, task: dict, websocket=None, stream_output=None, tone=None, headers=None):
+        # Validate model before initializing
+        task["model"] = validate_model(task.get("model"))
+
         self.task = task
-        # Hardcode the model value for all research tasks
-        self.task["model"] = "gpt-4o"
         self.websocket = websocket
         self.stream_output = stream_output
         self.headers = headers or {}
